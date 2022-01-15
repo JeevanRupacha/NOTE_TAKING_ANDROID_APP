@@ -1,27 +1,32 @@
 package com.example.notetakingandroid
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.defaultDecayAnimationSpec
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameter
-import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.notetakingandroid.feature_note.presentation.navigation.Screen
 import com.example.notetakingandroid.ui.theme.NoteTakingAndroidTheme
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.example.notetakingandroid.feature_note.presentation.add_edit_note.AddEditNoteScreen
+import com.example.notetakingandroid.feature_note.presentation.add_edit_note.AddEditNoteViewModel
+import com.example.notetakingandroid.feature_note.presentation.notes.NotesScreen
+import com.example.notetakingandroid.feature_note.presentation.notes.NotesViewModel
+
+const val TAG = "MainActivity"
+
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @ExperimentalAnimationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -29,55 +34,48 @@ class MainActivity : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
 
+                    val navController = rememberNavController()
+
+                    NavHost(navController = navController, startDestination = Screen.NotesList.route )
+                    {
+                        composable(Screen.NotesList.route)
+                        {
+                            val viewModel = hiltViewModel<NotesViewModel>()
+                            NotesScreen(viewModel = viewModel, navController =navController )
+                        }
+
+                        composable(
+                            route = Screen.NoteAddEdit.route +
+                                    "?noteID={noteID}&noteColor={noteColor}",
+                            arguments = listOf(
+                                navArgument(
+                                    name = "noteID"
+                                ){
+                                    type = NavType.IntType
+                                    defaultValue = -1
+                                },
+                                navArgument(
+                                    name ="noteColor"
+                                ){
+                                    type = NavType.IntType
+                                    defaultValue =-1
+                                }
+                            )
+                        )
+                        {
+                            val color = it.arguments?.getInt("noteColor") ?: -1
+
+                            val viewModel = hiltViewModel<AddEditNoteViewModel>()
+                            AddEditNoteScreen(
+                                 navController = navController,
+                                 viewModel = viewModel,
+                                 noteColor = color,
+                             )
+                        }
+                    }
+
                 }
             }
         }
     }
 }
-
-@Preview()
-@Composable
-fun previewCard(
-    @PreviewParameter(PreviewCardParameterProvider::class) user: User
-)
-{
-    UserCard(name = user.name, age = user.age)
-}
-
-class PreviewCardParameterProvider : PreviewParameterProvider<User>
-{
-    override val values  = sequenceOf(
-        User("John Miller", 45)
-    )
-}
-
-data class User(val name:String, val age :Int)
-
-
-@Composable
-fun UserCard(name: String , age: Int)
-{
-    Column(
-        modifier = Modifier
-            .padding(4.dp)
-            .fillMaxWidth()
-            .background(Color.Green)
-    ) {
-        Text(
-            text = "The name is ${name}",
-            modifier = Modifier
-                .padding(8.dp)
-                .fillMaxWidth(),
-            style = TextStyle(color = Color.Red, fontSize = 16.sp),
-        )
-        Text(
-            text = "Age is ${age}",
-            modifier = Modifier
-                .padding(8.dp)
-                .fillMaxWidth(),
-            style = TextStyle(color = Color.Red, fontSize = 16.sp),
-        )
-
-    }
-}
-

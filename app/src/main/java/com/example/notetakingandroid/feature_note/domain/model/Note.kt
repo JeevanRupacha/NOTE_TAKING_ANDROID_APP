@@ -1,29 +1,22 @@
 package com.example.notetakingandroid.feature_note.domain.model
 
+import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.notetakingandroid.ui.theme.*
+import kotlinx.parcelize.Parcelize
 
-@Entity
+@Parcelize
 data class Note(
-    @PrimaryKey(autoGenerate = true) val uid: Int,
-
-    @ColumnInfo(name ="title")
+    val uid: Int?,
     val title:String,
-
-    @ColumnInfo(name = "content")
     val content: String,
-
-    @ColumnInfo(name = "timeStamp")
     val timeStamp: Long,
-
-    @ColumnInfo(name = "color")
     val color: Int? = null,
-)
+) : Parcelable
 {
     companion object{
         val colors = listOf(RedOrange, RedPink, BabyBlue, Violet, LightGreen)
-        val TABLE_NAME = "notes"
     }
 }
